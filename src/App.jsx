@@ -2,12 +2,19 @@ import './App.css';
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import EventBar from './components/EventBar';
 import TaskBox from './components/TaskBox';
-import { Layout } from 'antd';
+import { Layout, theme } from 'antd';
 
 function App() {
+  const { token } = theme.useToken();
+
   const initEvent = useMemo(() => [
     {
-      title: 'Add a new Event',
+      title: '新建事件',
+      columnColors: {
+        'To do': '#faad14',
+        'In progress': '#1677ff',
+        'Completed': '#52c41a'
+      },
       ['To do']: [],
       ['In progress']: [],
       ['Completed']: [],
@@ -15,9 +22,20 @@ function App() {
   ], []);
 
   const [events, setEvents] = useState(() => {
-    return localStorage.getItem('events')
-      ? JSON.parse(localStorage.getItem('events'))
-      : initEvent;
+    const savedEvents = localStorage.getItem('events');
+    if (savedEvents) {
+      const parsedEvents = JSON.parse(savedEvents);
+      // 确保所有事件都有列颜色属性
+      return parsedEvents.map(event => ({
+        ...event,
+        columnColors: event.columnColors || {
+          'To do': '#faad14',
+          'In progress': '#1677ff',
+          'Completed': '#52c41a'
+        }
+      }));
+    }
+    return initEvent;
   });
 
   const [currentEvent, setCurrentEvent] = useState(events[0]);
@@ -33,7 +51,7 @@ function App() {
     } catch (e) {
       console.error('Failed to modify events!');
     }
-  }, [events]);
+  }, [events, initEvent]);
 
   // Set localStorage
   useEffect(() => {
@@ -41,7 +59,7 @@ function App() {
   }, [events]);
 
   return (
-    <Layout className="h-screen">
+    <Layout className="h-screen overflow-y-hidden">
       <EventBar
         events={events}
         setEvents={setEvents}

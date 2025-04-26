@@ -1,45 +1,58 @@
-import React, { useCallback } from 'react';
-import { Layout, Menu, Button, Typography } from 'antd';
+import React, { useState } from 'react';
+import { Layout, Menu, Button, Typography, Modal, Form, Input } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
 const { Sider } = Layout;
 const { Title } = Typography;
 
 const EventBar = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
-  const handleAdd = useCallback(() => {
-    const title = prompt('Enter the Title:');
-    if (!title) return;
-    
-    // Prevent Duplicated
+  const [form] = Form.useForm();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const showAddModal = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleAdd = (values) => {
+    const title = values.title;
     if (events.find((event) => event.title.toLowerCase() === title.toLowerCase())) {
-      alert('Event Already Existed');
+      Modal.error({
+        title: '添加失败',
+        content: '事件名称已存在！'
+      });
       return;
     }
 
-    // Add new event
     setEvents((prev) => [
       ...prev,
       {
         title,
+        columnColors: {
+          'To do': '#faad14',
+          'In progress': '#1677ff',
+          'Completed': '#52c41a'
+        },
         ['To do']: [],
         ['In progress']: [],
         ['Completed']: [],
       },
     ]);
-  }, [events, setEvents]);
+    setIsAddModalOpen(false);
+    form.resetFields();
+  };
 
   return (
-    <Sider width={250} className="!bg-white !p-4 border-r h-full ">
+    <Sider width={250} className="!bg-white !p-4 border-r h-full">
       <div className="flex flex-col gap-4">
         <Title level={3} className="!mb-0">.kanban</Title>
         <Button 
           type="primary"
           icon={<PlusOutlined />}
-          onClick={handleAdd}
+          onClick={showAddModal}
           block
           size="large"
         >
-          New Event
+          新建事件
         </Button>
       </div>
       <Menu
@@ -52,6 +65,32 @@ const EventBar = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
         }))}
         className="!border-0 !mt-4"
       />
+
+      <Modal
+        title="新建事件"
+        open={isAddModalOpen}
+        onOk={() => form.submit()}
+        onCancel={() => {
+          setIsAddModalOpen(false);
+          form.resetFields();
+        }}
+        okText="添加"
+        cancelText="取消"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleAdd}
+        >
+          <Form.Item
+            name="title"
+            label="事件名称"
+            rules={[{ required: true, message: '请输入事件名称！' }]}
+          >
+            <Input placeholder="请输入事件名称" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Sider>
   );
 };
