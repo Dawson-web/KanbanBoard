@@ -1,4 +1,4 @@
-# ✔️ Kanban Board - With React
+# ✔️ KanBanBoard
 
 <p align="center"><img src="./src/assets/favicon.svg" style="zoom:80%;" /></p>
 
@@ -18,7 +18,8 @@
 ## Dependencies
 
 - React
-- react-beautiful-dnd
+- antd
+- @hello-pangea/dnd
 - uuid
 
 ## Todo

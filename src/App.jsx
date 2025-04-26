@@ -1,9 +1,8 @@
 import './App.css';
-import './components/event.css';
-import './components/task.css';
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import EventBar from './components/EventBar';
 import TaskBox from './components/TaskBox';
+import { Layout } from 'antd';
 
 function App() {
   const initEvent = useMemo(() => [
@@ -42,7 +41,7 @@ function App() {
   }, [events]);
 
   return (
-    <div className='App'>
+    <Layout className="h-screen">
       <EventBar
         events={events}
         setEvents={setEvents}
@@ -55,7 +54,7 @@ function App() {
         currentEvent={currentEvent}
         setCurrentEvent={setCurrentEvent}
       />
-    </div>
+    </Layout>
   );
 }
 

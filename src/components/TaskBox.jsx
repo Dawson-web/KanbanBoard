@@ -1,6 +1,11 @@
 import React, { useCallback } from 'react';
 import Column from './Column';
-import { DragDropContext } from 'react-beautiful-dnd';
+import { DragDropContext } from '@hello-pangea/dnd';
+import { Layout, Typography, Button, Space } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
+
+const { Header, Content } = Layout;
+const { Title } = Typography;
 
 const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   const handleRemove = useCallback(() => {
@@ -55,17 +60,24 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   }, [events, setEvents, currentEvent]);
 
   return (
-    <div className='task-box'>
-      <header className='task-box-header'>
-        <h1 className='task-box-title'>All Tasks</h1>
-        <button className='remove-button' onClick={handleRemove}>
-          Remove this Event
-        </button>
-      </header>
-      <DragDropContext onDragEnd={(result) => handleDragEnd(result)}>
-        <div className='task-box-body'>
-          {
-            ['To do', 'In progress', 'Completed'].map(tag => (
+    <Layout className="min-h-screen bg-white ">
+      <Header className="flex items-center justify-between !bg-white px-8 py-4 border-b">
+        <Space>
+          <Title level={2} className="!mb-0 ">All Tasks</Title>
+          <Button 
+            type="primary" 
+            danger
+            icon={<DeleteOutlined />}
+            onClick={handleRemove}
+          >
+            Remove Event
+          </Button>
+        </Space>
+      </Header>
+      <Content className="p-6">
+        <DragDropContext onDragEnd={(result) => handleDragEnd(result)}>
+          <div className="grid grid-cols-3 gap-6">
+            {['To do', 'In progress', 'Completed'].map(tag => (
               <Column
                 key={tag}
                 tag={tag}
@@ -73,11 +85,11 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
                 setEvents={setEvents}
                 currentEvent={currentEvent}
               />
-            ))
-          }
-        </div>
-      </DragDropContext>
-    </div>
+            ))}
+          </div>
+        </DragDropContext>
+      </Content>
+    </Layout>
   );
 };
 

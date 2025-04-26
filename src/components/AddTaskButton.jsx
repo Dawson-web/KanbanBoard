@@ -1,8 +1,13 @@
+import { Button } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+
 const AddTaskButton = ({ handleClick }) => {
   return (
-    <div className='add-task-button' onClick={handleClick}>
-      +
-    </div>
+    <Button 
+      type="text"
+      icon={<PlusOutlined />}
+      onClick={handleClick}
+    />
   );
 };
 

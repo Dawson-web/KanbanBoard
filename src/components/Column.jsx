@@ -1,33 +1,42 @@
 import AddTaskButton from './AddTaskButton';
 import Task from './Task';
-import { Droppable, Draggable } from 'react-beautiful-dnd';
-import uuid from 'react-uuid';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
+import { v4 as uuid } from 'uuid';
+import { Card, Typography, Modal, Form, Input } from 'antd';
+import { useState } from 'react';
+
+const { Title } = Typography;
+const { TextArea } = Input;
 
 const Column = ({ tag, currentEvent, events, setEvents }) => {
-  const handleAdd = () => {
-    const name = prompt('Enter task name:');
-    const details = prompt('Enter details:');
-    if (!(name && details)) return;
+  const [form] = Form.useForm();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const showAddModal = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleAdd = (values) => {
     setEvents((prev) => {
       const arrCopy = [...prev];
       const index = prev.findIndex(
         (event) => event.title === currentEvent.title
       );
       const eventCopy = arrCopy[index];
-      // Remove old and add the latest data
       arrCopy.splice(index, 1, {
         ...eventCopy,
         [tag]: [
           ...eventCopy[tag],
-          { name: name, id: uuid(), details: details },
+          { name: values.name, id: uuid(), details: values.details },
         ],
       });
       return arrCopy;
     });
+    setIsAddModalOpen(false);
+    form.resetFields();
   };
 
   const handleRemove = (id, e) => {
-    // 禁止冒泡到上层:修改task
     e.stopPropagation();
     setEvents((prev) =>
       prev.map((event) => {
@@ -43,10 +52,7 @@ const Column = ({ tag, currentEvent, events, setEvents }) => {
     );
   };
 
-  const handleUpdate = (id) => {
-    const name = prompt('Update task name:');
-    const details = prompt('Update details:');
-    if (!(name && details)) return;
+  const handleUpdate = (id, name, details) => {
     setEvents((prev) =>
       prev.map((event) => {
         if (event.title === currentEvent.title) {
@@ -67,44 +73,81 @@ const Column = ({ tag, currentEvent, events, setEvents }) => {
   };
 
   return (
-    <div className='column'>
-      {tag}
-      <AddTaskButton handleClick={handleAdd} />
-      <Droppable droppableId={tag}>
-        {(provided, snapshot) => {
-          return (
-            <div
-              className='task-container'
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-            >
-              {events
-                .find((event) => event.title === currentEvent.title)
-                ?.[tag].map((item, index) => (
+    <>
+      <Card 
+        title={<Title level={4} className="!mb-0">{tag}</Title>}
+        className="bg-gray-50"
+        extra={<AddTaskButton handleClick={showAddModal} />}
+      >
+        <Droppable droppableId={tag}>
+          {(provided, snapshot) => {
+            return (
+              <div
+                className="min-h-[30px] max-h-[calc(100vh-250px)] overflow-auto"
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                {events
+                  .find((event) => event.title === currentEvent.title)
+                  ?.[tag].map((item, index) => (
                     <Draggable
                       key={item.id}
                       draggableId={item.id}
                       index={index}
                     >
                       {(provided, snapshot) => (
-                          <Task
-                            name={item.name}
-                            details={item.details}
-                            id={item.id}
-                            provided={provided}
-                            snapshot={snapshot}
-                            handleRemove={handleRemove}
-                            handleUpdate={handleUpdate}
-                          />
-                        )}
+                        <Task
+                          name={item.name}
+                          details={item.details}
+                          id={item.id}
+                          provided={provided}
+                          snapshot={snapshot}
+                          handleRemove={handleRemove}
+                          handleUpdate={handleUpdate}
+                        />
+                      )}
                     </Draggable>
                   ))}
-              {provided.placeholder}
-            </div>
-          );
+                {provided.placeholder}
+              </div>
+            );
+          }}
+        </Droppable>
+      </Card>
+
+      <Modal
+        title="Add New Task"
+        open={isAddModalOpen}
+        onOk={() => form.submit()}
+        onCancel={() => {
+          setIsAddModalOpen(false);
+          form.resetFields();
         }}
-      </Droppable>
-    </div>
+        okText="Add"
+        cancelText="Cancel"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleAdd}
+        >
+          <Form.Item
+            name="name"
+            label="Task Name"
+            rules={[{ required: true, message: 'Please input task name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="details"
+            label="Task Details"
+            rules={[{ required: true, message: 'Please input task details!' }]}
+          >
+            <TextArea rows={4} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
   );
 };
 
