@@ -169,15 +169,33 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
 
   const handleAddColumn = (values) => {
     const { columnTitle } = values;
+    
+    // 先更新 currentEvent，确保 UI 立即响应
+    setCurrentEvent(prev => {
+      // 检查列名是否已存在
+      if (prev[columnTitle]) {
+        Modal.error({
+          title: '添加失败',
+          content: '列名已存在！'
+        });
+        return prev;
+      }
+      return {
+        ...prev,
+        [columnTitle]: [], // 新列的任务列表
+        columnColors: {
+          ...prev.columnColors,
+          [columnTitle]: '#1890ff' // 默认蓝色
+        }
+      };
+    });
+
+    // 然后更新 events
     setEvents(prev => 
       prev.map(event => {
         if (event.title === currentEvent.title) {
           // 检查列名是否已存在
           if (event[columnTitle]) {
-            Modal.error({
-              title: '添加失败',
-              content: '列名已存在！'
-            });
             return event;
           }
           return {
@@ -192,6 +210,7 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
         return event;
       })
     );
+
     setIsAddColumnModalOpen(false);
     form.resetFields();
   };
