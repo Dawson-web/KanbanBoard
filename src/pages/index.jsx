@@ -1,7 +1,6 @@
-import './App.css';
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import EventBar from './components/EventBar';
-import TaskBox from './components/TaskBox';
+import EventBar from '../components/EventBar';
+import TaskBox from '../components/TaskBox';
 import { Layout, theme } from 'antd';
 
 function App() {
