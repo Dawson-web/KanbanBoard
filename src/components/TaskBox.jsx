@@ -1,42 +1,60 @@
-import React, { useCallback, useState } from 'react';
-import Column from './Column';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Layout, Typography, Modal, Form, Input, FloatButton } from 'antd';
-import { DeleteOutlined, PlusOutlined, SettingOutlined, EditOutlined } from '@ant-design/icons';
+import React, { useCallback, useState } from "react";
+import Column from "./Column";
+import TaskStatistics from "./TaskStatistics";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  Layout,
+  Typography,
+  Modal,
+  Form,
+  Input,
+  FloatButton,
+  Button,
+} from "antd";
+import {
+  DeleteOutlined,
+  PlusOutlined,
+  SettingOutlined,
+  EditOutlined,
+  BarChartOutlined,
+} from "@ant-design/icons";
 const { Header, Content } = Layout;
 const { Title } = Typography;
 
 const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
+  const [isTaskStatisticsOpen, setIsTaskStatisticsOpen] = useState(false);
   const [form] = Form.useForm();
   const [editEventForm] = Form.useForm();
 
   const handleRemove = useCallback(() => {
     Modal.confirm({
-      title: '删除确认',
-      content: '确定要删除这个事件吗？此操作不可恢复。',
-      okText: '删除',
-      cancelText: '取消',
+      title: "删除确认",
+      content: "确定要删除这个事件吗？此操作不可恢复。",
+      okText: "删除",
+      cancelText: "取消",
       okButtonProps: { danger: true },
       onOk: () => {
         // update events
         setEvents((prev) => {
-          const result = prev.filter((item) => item.title != currentEvent.title);
+          const result = prev.filter(
+            (item) => item.title != currentEvent.title
+          );
           // if event is empty
           if (!result.length) {
             // init the event
             const initEvent = [
               {
-                title: '新建事件',
+                title: "新建事件",
                 columnColors: {
-                  'To do': '#faad14',
-                  'In progress': '#1677ff',
-                  'Completed': '#52c41a'
+                  "To do": "#faad14",
+                  "In progress": "#1677ff",
+                  Completed: "#52c41a",
                 },
-                ['To do']: [],
-                ['In progress']: [],
-                ['Completed']: [],
+                ["To do"]: [],
+                ["In progress"]: [],
+                ["Completed"]: [],
               },
             ];
             setEvents(initEvent);
@@ -46,7 +64,7 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
           }
           return result;
         });
-      }
+      },
     });
   }, [events, setEvents, currentEvent, setCurrentEvent]);
 
@@ -63,65 +81,69 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
     }
 
     // 处理列的拖动
-    if (type === 'COLUMN') {
-      setEvents(prev => 
-        prev.map(event => {
+    if (type === "COLUMN") {
+      setEvents((prev) =>
+        prev.map((event) => {
           if (event.title === currentEvent.title) {
-            const newEvent = { title: event.title, columnColors: event.columnColors };
-            const columns = Object.keys(event).filter(key => 
-              Array.isArray(event[key]) && key !== 'columnColors'
+            const newEvent = {
+              title: event.title,
+              columnColors: event.columnColors,
+            };
+            const columns = Object.keys(event).filter(
+              (key) => Array.isArray(event[key]) && key !== "columnColors"
             );
-            
+
             // 重新排序列
             const orderedColumns = [...columns];
             const [movedColumn] = orderedColumns.splice(source.index, 1);
             orderedColumns.splice(destination.index, 0, movedColumn);
-            
+
             // 按新顺序重建事件对象
-            orderedColumns.forEach(columnTitle => {
+            orderedColumns.forEach((columnTitle) => {
               newEvent[columnTitle] = event[columnTitle];
             });
-            
+
             return newEvent;
           }
           return event;
         })
       );
-      
+
       // 同步更新 currentEvent
-      setCurrentEvent(prev => {
+      setCurrentEvent((prev) => {
         const newEvent = { title: prev.title, columnColors: prev.columnColors };
-        const columns = Object.keys(prev).filter(key => 
-          Array.isArray(prev[key]) && key !== 'columnColors'
+        const columns = Object.keys(prev).filter(
+          (key) => Array.isArray(prev[key]) && key !== "columnColors"
         );
-        
+
         const orderedColumns = [...columns];
         const [movedColumn] = orderedColumns.splice(source.index, 1);
         orderedColumns.splice(destination.index, 0, movedColumn);
-        
-        orderedColumns.forEach(columnTitle => {
+
+        orderedColumns.forEach((columnTitle) => {
           newEvent[columnTitle] = prev[columnTitle];
         });
-        
+
         return newEvent;
       });
       return;
     }
 
     // 处理任务的拖动
-    if (type === 'TASK') {
-      const taskId = draggableId.replace('task-', '');
-      
+    if (type === "TASK") {
+      const taskId = draggableId.replace("task-", "");
+
       setEvents((prev) =>
         prev.map((event) => {
           if (event.title === currentEvent.title) {
             const sourceList = [...event[source.droppableId]];
-            const destList = source.droppableId === destination.droppableId
-              ? sourceList
-              : [...event[destination.droppableId]];
+            const destList =
+              source.droppableId === destination.droppableId
+                ? sourceList
+                : [...event[destination.droppableId]];
 
             const [removed] = sourceList.splice(source.index, 1);
-            
+
             if (source.droppableId === destination.droppableId) {
               sourceList.splice(destination.index, 0, removed);
               return {
@@ -142,14 +164,15 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
       );
 
       // 同步更新 currentEvent
-      setCurrentEvent(prev => {
+      setCurrentEvent((prev) => {
         const sourceList = [...prev[source.droppableId]];
-        const destList = source.droppableId === destination.droppableId
-          ? sourceList
-          : [...prev[destination.droppableId]];
+        const destList =
+          source.droppableId === destination.droppableId
+            ? sourceList
+            : [...prev[destination.droppableId]];
 
         const [removed] = sourceList.splice(source.index, 1);
-        
+
         if (source.droppableId === destination.droppableId) {
           sourceList.splice(destination.index, 0, removed);
           return {
@@ -170,14 +193,14 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
 
   const handleAddColumn = (values) => {
     const { columnTitle } = values;
-    
+
     // 先更新 currentEvent，确保 UI 立即响应
-    setCurrentEvent(prev => {
+    setCurrentEvent((prev) => {
       // 检查列名是否已存在
       if (prev[columnTitle]) {
         Modal.error({
-          title: '添加失败',
-          content: '列名已存在！'
+          title: "添加失败",
+          content: "列名已存在！",
         });
         return prev;
       }
@@ -186,14 +209,14 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
         [columnTitle]: [], // 新列的任务列表
         columnColors: {
           ...prev.columnColors,
-          [columnTitle]: '#1890ff' // 默认蓝色
-        }
+          [columnTitle]: "#1890ff", // 默认蓝色
+        },
       };
     });
 
     // 然后更新 events
-    setEvents(prev => 
-      prev.map(event => {
+    setEvents((prev) =>
+      prev.map((event) => {
         if (event.title === currentEvent.title) {
           // 检查列名是否已存在
           if (event[columnTitle]) {
@@ -204,8 +227,8 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
             [columnTitle]: [], // 新列的任务列表
             columnColors: {
               ...event.columnColors,
-              [columnTitle]: '#1890ff' // 默认蓝色
-            }
+              [columnTitle]: "#1890ff", // 默认蓝色
+            },
           };
         }
         return event;
@@ -217,15 +240,15 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   };
 
   const handleColumnDelete = (columnTitle) => {
-    setEvents(prev => 
-      prev.map(event => {
+    setEvents((prev) =>
+      prev.map((event) => {
         if (event.title === currentEvent.title) {
           const { [columnTitle]: deletedColumn, ...rest } = event;
           const { columnColors } = event;
           delete columnColors[columnTitle];
           return {
             ...rest,
-            columnColors
+            columnColors,
           };
         }
         return event;
@@ -233,13 +256,13 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
     );
 
     // 同步更新 currentEvent
-    setCurrentEvent(prev => {
+    setCurrentEvent((prev) => {
       const { [columnTitle]: deletedColumn, ...rest } = prev;
       const { columnColors } = prev;
       delete columnColors[columnTitle];
       return {
         ...rest,
-        columnColors
+        columnColors,
       };
     });
   };
@@ -248,19 +271,19 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
     if (oldTitle === newTitle) return;
 
     // 先更新 currentEvent，确保 UI 立即响应
-    setCurrentEvent(prev => {
-      const newEvent = { 
+    setCurrentEvent((prev) => {
+      const newEvent = {
         title: prev.title,
         columnColors: {
           ...prev.columnColors,
-          [newTitle]: prev.columnColors[oldTitle]
-        }
+          [newTitle]: prev.columnColors[oldTitle],
+        },
       };
       delete newEvent.columnColors[oldTitle];
 
       // 按顺序复制所有列
-      Object.keys(prev).forEach(key => {
-        if (key === 'title' || key === 'columnColors') return;
+      Object.keys(prev).forEach((key) => {
+        if (key === "title" || key === "columnColors") return;
         if (key === oldTitle) {
           newEvent[newTitle] = [...prev[oldTitle]];
         } else {
@@ -272,30 +295,30 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
     });
 
     // 然后更新 events
-    setEvents(prev => 
-      prev.map(event => {
+    setEvents((prev) =>
+      prev.map((event) => {
         if (event.title === currentEvent.title) {
           // 检查新列名是否已存在
           if (event[newTitle] && oldTitle !== newTitle) {
             Modal.error({
-              title: '重命名失败',
-              content: '列名已存在！'
+              title: "重命名失败",
+              content: "列名已存在！",
             });
             return event;
           }
 
-          const newEvent = { 
+          const newEvent = {
             title: event.title,
             columnColors: {
               ...event.columnColors,
-              [newTitle]: event.columnColors[oldTitle]
-            }
+              [newTitle]: event.columnColors[oldTitle],
+            },
           };
           delete newEvent.columnColors[oldTitle];
 
           // 按顺序复制所有列
-          Object.keys(event).forEach(key => {
-            if (key === 'title' || key === 'columnColors') return;
+          Object.keys(event).forEach((key) => {
+            if (key === "title" || key === "columnColors") return;
             if (key === oldTitle) {
               newEvent[newTitle] = [...event[oldTitle]];
             } else {
@@ -312,16 +335,22 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
 
   const handleEditEvent = (values) => {
     const { title } = values;
-    if (events.find((event) => event.title.toLowerCase() === title.toLowerCase() && event.title !== currentEvent.title)) {
+    if (
+      events.find(
+        (event) =>
+          event.title.toLowerCase() === title.toLowerCase() &&
+          event.title !== currentEvent.title
+      )
+    ) {
       Modal.error({
-        title: '修改失败',
-        content: '事件名称已存在！'
+        title: "修改失败",
+        content: "事件名称已存在！",
       });
       return;
     }
 
-    setEvents(prev => 
-      prev.map(event => {
+    setEvents((prev) =>
+      prev.map((event) => {
         if (event.title === currentEvent.title) {
           return { ...event, title };
         }
@@ -329,9 +358,9 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
       })
     );
 
-    setCurrentEvent(prev => ({
+    setCurrentEvent((prev) => ({
       ...prev,
-      title
+      title,
     }));
 
     setIsEditEventModalOpen(false);
@@ -339,21 +368,19 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   };
 
   // 获取当前事件的所有列
-  const columns = currentEvent ? 
-    Object.keys(currentEvent).filter(key => 
-      Array.isArray(currentEvent[key]) && key !== 'columnColors'
-    ) : [];
+  const columns = currentEvent
+    ? Object.keys(currentEvent).filter(
+        (key) => Array.isArray(currentEvent[key]) && key !== "columnColors"
+      )
+    : [];
 
   return (
-    <Layout className="min-h-screen bg-white">
-      {/* <Header className="!flex items-center !bg-white px-8 py-4 border-b">
-        <img src={logo} alt="logo" className="w-10 h-10" />
-      </Header> */}
-      <Content className="p-6 overflow-x-auto">
+    <Layout className="h-screen overflow-hidden flex flex-col">
+      <Content className="px-6 pt-4 overflow-auto flex-grow">
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="columns" direction="horizontal" type="COLUMN">
             {(provided) => (
-              <div 
+              <div
                 className="flex gap-6 min-w-max"
                 ref={provided.innerRef}
                 {...provided.droppableProps}
@@ -389,7 +416,13 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
             )}
           </Droppable>
         </DragDropContext>
-
+        {isTaskStatisticsOpen && (
+          <TaskStatistics
+            currentEvent={currentEvent}
+            isTaskStatisticsOpen={isTaskStatisticsOpen}
+            setIsTaskStatisticsOpen={setIsTaskStatisticsOpen}
+          />
+        )}
         <FloatButton.Group
           trigger="hover"
           icon={<SettingOutlined />}
@@ -397,9 +430,19 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
           style={{ right: 24 }}
         >
           <FloatButton
+            icon={<BarChartOutlined />}
+            tooltip="事件看板"
+            onClick={() => setIsTaskStatisticsOpen(true)}
+          />
+          <FloatButton
             icon={<PlusOutlined />}
             tooltip="添加新列"
             onClick={() => setIsAddColumnModalOpen(true)}
+          />
+          <FloatButton
+            icon={<DeleteOutlined />}
+            tooltip="删除事件"
+            onClick={handleRemove}
           />
           <FloatButton
             icon={<EditOutlined />}
@@ -408,11 +451,6 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
               editEventForm.setFieldsValue({ title: currentEvent.title });
               setIsEditEventModalOpen(true);
             }}
-          />
-          <FloatButton
-            icon={<DeleteOutlined />}
-            tooltip="删除事件"
-            onClick={handleRemove}
           />
         </FloatButton.Group>
 
@@ -430,17 +468,13 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
           maskClosable={false}
           centered
         >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleAddColumn}
-          >
+          <Form form={form} layout="vertical" onFinish={handleAddColumn}>
             <Form.Item
               name="columnTitle"
               label="列名称"
               rules={[
-                { required: true, message: '请输入列名称！' },
-                { max: 10, message: '列名称不能超过10个字符！' }
+                { required: true, message: "请输入列名称！" },
+                { max: 10, message: "列名称不能超过10个字符！" },
               ]}
             >
               <Input placeholder="请输入列名称" maxLength={10} showCount />
@@ -472,8 +506,8 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
               name="title"
               label="事件名称"
               rules={[
-                { required: true, message: '请输入事件名称！' },
-                { max: 20, message: '事件名称不能超过20个字符！' }
+                { required: true, message: "请输入事件名称！" },
+                { max: 20, message: "事件名称不能超过20个字符！" },
               ]}
             >
               <Input placeholder="请输入事件名称" maxLength={20} showCount />

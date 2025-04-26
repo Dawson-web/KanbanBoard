@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
-import { Typography, Button, Modal, Form, Input, Popconfirm, Tooltip } from 'antd';
-import { EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import React, { useState } from "react";
+import {
+  Typography,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Popconfirm,
+  Tooltip,
+} from "antd";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 
 const { Text } = Typography;
 
-const ColumnTitleEditor = ({ 
-  title, 
-  color,
-  onTitleChange,
-  onDelete,
-  canDelete = true, // 是否允许删除（某些默认列可能不允许删除）
-}) => {
+const ColumnTitleEditor = ({ title, color, onTitleChange, onDelete }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [form] = Form.useForm();
 
@@ -20,7 +26,7 @@ const ColumnTitleEditor = ({
   };
 
   const handleEditOk = () => {
-    form.validateFields().then(values => {
+    form.validateFields().then((values) => {
       onTitleChange(values.title);
       setIsEditModalOpen(false);
       form.resetFields();
@@ -30,7 +36,9 @@ const ColumnTitleEditor = ({
   return (
     <>
       <div className="flex items-center gap-2">
-        <Text strong className="text-base flex-1">{title}</Text>
+        <Text strong className="text-base flex-1">
+          {title}
+        </Text>
         <div className="flex items-center gap-1">
           <Tooltip title="编辑列名">
             <Button
@@ -41,39 +49,39 @@ const ColumnTitleEditor = ({
               className="hover:bg-white/50 !px-2"
             />
           </Tooltip>
-          {canDelete && (
-            <Tooltip title="删除此列">
-              <Popconfirm
-                title="删除确认"
-                description={
-                  <div className="flex flex-col gap-2">
-                    <Text>确定要删除此列吗？</Text>
-                    <Text type="secondary">该列中的所有任务都将被删除，此操作不可恢复。</Text>
-                  </div>
-                }
-                icon={<ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />}
-                onConfirm={onDelete}
-                okText="删除"
-                cancelText="取消"
-                okButtonProps={{ danger: true }}
-              >
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  className="hover:bg-red-50 !px-2"
-                />
-              </Popconfirm>
-            </Tooltip>
-          )}
+          <Tooltip title="删除此列">
+            <Popconfirm
+              title="删除确认"
+              description={
+                <div className="flex flex-col gap-2">
+                  <Text>确定要删除此列吗？</Text>
+                  <Text type="secondary">
+                    该列中的所有任务都将被删除，此操作不可恢复。
+                  </Text>
+                </div>
+              }
+              icon={<ExclamationCircleOutlined style={{ color: "#ff4d4f" }} />}
+              onConfirm={onDelete}
+              okText="删除"
+              cancelText="取消"
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                className="hover:bg-red-50 !px-2"
+              />
+            </Popconfirm>
+          </Tooltip>
         </div>
       </div>
 
       <Modal
         title={
           <div className="flex items-center gap-2">
-            <div 
+            <div
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: color }}
             />
@@ -99,8 +107,8 @@ const ColumnTitleEditor = ({
             name="title"
             label="列名称"
             rules={[
-              { required: true, message: '请输入列名称！' },
-              { max: 10, message: '列名称不能超过10个字符！' }
+              { required: true, message: "请输入列名称！" },
+              { max: 10, message: "列名称不能超过10个字符！" },
             ]}
           >
             <Input placeholder="请输入列名称" maxLength={10} showCount />
@@ -111,4 +119,4 @@ const ColumnTitleEditor = ({
   );
 };
 
-export default ColumnTitleEditor; 
+export default ColumnTitleEditor;
