@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Typography, Modal, Form, Input } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import logo from '../assets/favicon.svg';
 
 const { Sider } = Layout;
 const { Title } = Typography;
@@ -44,7 +45,10 @@ const EventBar = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   return (
     <Sider width={250} className="!bg-white !p-4 border-r h-full">
       <div className="flex flex-col gap-4">
-        <Title level={3} className="!mb-0">.kanban</Title>
+        <Title level={3} className="!mb-0 flex items-center gap-2">
+          <img src={logo} alt="logo" className="w-8 h-8" />
+          .kanBan
+        </Title>
         <Button 
           type="primary"
           icon={<PlusOutlined />}

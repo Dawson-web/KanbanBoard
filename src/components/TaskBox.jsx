@@ -2,14 +2,15 @@ import React, { useCallback, useState } from 'react';
 import Column from './Column';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Layout, Typography, Modal, Form, Input, FloatButton } from 'antd';
-import { DeleteOutlined, PlusOutlined, SettingOutlined } from '@ant-design/icons';
-
+import { DeleteOutlined, PlusOutlined, SettingOutlined, EditOutlined } from '@ant-design/icons';
 const { Header, Content } = Layout;
 const { Title } = Typography;
 
 const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
+  const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
   const [form] = Form.useForm();
+  const [editEventForm] = Form.useForm();
 
   const handleRemove = useCallback(() => {
     Modal.confirm({
@@ -309,6 +310,34 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
     );
   };
 
+  const handleEditEvent = (values) => {
+    const { title } = values;
+    if (events.find((event) => event.title.toLowerCase() === title.toLowerCase() && event.title !== currentEvent.title)) {
+      Modal.error({
+        title: '修改失败',
+        content: '事件名称已存在！'
+      });
+      return;
+    }
+
+    setEvents(prev => 
+      prev.map(event => {
+        if (event.title === currentEvent.title) {
+          return { ...event, title };
+        }
+        return event;
+      })
+    );
+
+    setCurrentEvent(prev => ({
+      ...prev,
+      title
+    }));
+
+    setIsEditEventModalOpen(false);
+    editEventForm.resetFields();
+  };
+
   // 获取当前事件的所有列
   const columns = currentEvent ? 
     Object.keys(currentEvent).filter(key => 
@@ -317,9 +346,9 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
 
   return (
     <Layout className="min-h-screen bg-white">
-      <Header className="flex items-center !bg-white px-8 py-4 border-b">
-        <Title level={2} className="!mb-0">All Tasks</Title>
-      </Header>
+      {/* <Header className="!flex items-center !bg-white px-8 py-4 border-b">
+        <img src={logo} alt="logo" className="w-10 h-10" />
+      </Header> */}
       <Content className="p-6 overflow-x-auto">
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="columns" direction="horizontal" type="COLUMN">
@@ -373,6 +402,14 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
             onClick={() => setIsAddColumnModalOpen(true)}
           />
           <FloatButton
+            icon={<EditOutlined />}
+            tooltip="编辑事件"
+            onClick={() => {
+              editEventForm.setFieldsValue({ title: currentEvent.title });
+              setIsEditEventModalOpen(true);
+            }}
+          />
+          <FloatButton
             icon={<DeleteOutlined />}
             tooltip="删除事件"
             onClick={handleRemove}
@@ -407,6 +444,39 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
               ]}
             >
               <Input placeholder="请输入列名称" maxLength={10} showCount />
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        <Modal
+          title="编辑事件"
+          open={isEditEventModalOpen}
+          onOk={() => editEventForm.submit()}
+          onCancel={() => {
+            setIsEditEventModalOpen(false);
+            editEventForm.resetFields();
+          }}
+          okText="保存"
+          cancelText="取消"
+          className="!w-[400px]"
+          maskClosable={false}
+          centered
+        >
+          <Form
+            form={editEventForm}
+            layout="vertical"
+            onFinish={handleEditEvent}
+            initialValues={{ title: currentEvent.title }}
+          >
+            <Form.Item
+              name="title"
+              label="事件名称"
+              rules={[
+                { required: true, message: '请输入事件名称！' },
+                { max: 20, message: '事件名称不能超过20个字符！' }
+              ]}
+            >
+              <Input placeholder="请输入事件名称" maxLength={20} showCount />
             </Form.Item>
           </Form>
         </Modal>

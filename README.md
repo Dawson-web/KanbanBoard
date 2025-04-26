@@ -1,29 +1,144 @@
 # ✔️ KanBanBoard
 
-<p align="center"><img src="./src/assets/favicon.svg" style="zoom:80%;" /></p>
+一个功能强大的看板任务管理系统，基于 React 和 Ant Design 构建。
 
+## 🌟 特性
 
-## Features
+- 📋 多事件管理：支持创建多个独立的看板事件
+- 🎯 灵活的列管理：自定义添加、编辑、删除和拖拽排序列
+- 📝 任务管理：
+  - 创建、编辑、删除任务
+  - 拖拽排序和移动任务
+  - 任务详情支持富文本描述
+- 🎨 个性化定制：
+  - 支持自定义列的颜色
+  - 任务卡片自动继承列的颜色主题
+- 💾 数据持久化：自动保存到 localStorage
+- 🔄 实时拖拽排序：流畅的拖拽体验
+- �� 响应式设计：适配不同屏幕尺寸
 
-- [x] **Draggable**
-- [x] **Multi Event**
-  - [x] Adding as many events as you like.
-- [x] **Use Local Storage**
-- [x] **Pure and Easy**
+## 🚀 开发路线图
 
-## Screenshot
+### 🤖 AI 智能化
+- [ ] OpenAI 集成
+  - 智能任务分类和标签推荐
+  - 基于历史数据的任务完成时间预测
+  - 智能任务优先级排序
+  - 自动生成任务描述和建议
+- [ ] 智能提醒系统
+  - 基于任务紧急度的智能提醒
+  - 工作负载智能分析
+  - 任务瓶颈预警
 
-![ScreenGIF](https://imgbed.codingkelvin.fun/uPic/screen.gif)
+### 📊 数据分析与可视化
+- [ ] 任务统计分析
+  - 完成率统计图表
+  - 任务处理时间分布
+  - 成员工作量分析
+- [ ] 高级数据可视化
+  - 任务流转的桑基图
+  - 任务处理时间热力图
+  - 任务依赖关系网络图
+- [ ] 性能分析
+  - 团队效率分析
+  - 项目进度追踪
+  - 资源利用率分析
 
-## Dependencies
+### 🔄 性能优化
+- [ ] 前端优化
+  - 虚拟滚动实现
+  - Web Worker 处理大数据
+  - 组件懒加载
+- [ ] 存储优化
+  - IndexedDB 离线存储
+  - 数据分片加载
+  - 本地缓存优化
 
-- React
-- antd
-- @hello-pangea/dnd
-- uuid
+### 👥 协同功能
+- [ ] 实时协作
+  - WebSocket 实时更新
+  - 操作冲突解决
+  - 实时评论系统
+- [ ] 团队协作
+  - 任务指派功能
+  - @提醒功能
+  - 团队角色权限
 
-## Todo
+### 🎨 交互升级
+- [ ] 高级交互
+  - 任务关系可视化
+  - 任务卡片缩放预览
+  - 快捷键支持
+- [ ] 手势操作
+  - 移动端手势优化
+  - 触控屏支持
+  - 多点触控操作
 
-- [ ] *Make tasks modifiable and editable*
-- [ ] *Adapted to mobile*
+### 🔌 系统扩展
+- [ ] 插件系统
+  - 自定义插件开发
+  - 插件市场
+  - 主题定制
+- [ ] 数据互通
+  - 数据导入导出
+  - 第三方服务集成
+  - API 接口支持
+
+## 🛠️ 技术栈
+
+- **框架**: React 18
+- **UI 组件**: Ant Design 5.x
+- **拖拽功能**: @hello-pangea/dnd
+- **样式方案**: TailwindCSS
+- **状态管理**: React Hooks
+- **构建工具**: Vite
+- **包管理**: npm/yarn
+
+## 📦 安装
+
+```bash
+# 克隆项目
+git clone https://github.com/your-username/kanban-board.git
+
+# 进入项目目录
+cd kanban-board
+
+# 安装依赖
+npm install
+# 或
+yarn install
+
+# 启动开发服务器
+npm run dev
+# 或
+yarn dev
+```
+
+## 🚀 使用指南
+
+### 事件管理
+- 点击左侧栏的 "+" 按钮创建新事件
+- 使用右下角设置按钮：
+  - 编辑事件名称
+  - 删除当前事件
+
+### 列管理
+- 点击右上角 "+" 按钮添加新列
+- 拖拽列标题调整顺序
+- 点击列标题旁的编辑图标修改列名
+- 点击色块自定义列的颜色
+
+### 任务管理
+- 点击列右上角 "+" 按钮添加新任务
+- 拖拽任务卡片在列之间移动
+- 点击任务卡片上的编辑按钮修改任务
+- 点击删除按钮移除任务
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📄 许可证
+
+[MIT](LICENSE)
 
