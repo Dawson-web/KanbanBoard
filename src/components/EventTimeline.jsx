@@ -89,7 +89,7 @@ const EventTimeline = ({ currentEvent, isTimelineOpen, setIsTimelineOpen }) => {
       <Timeline
         direction="horizontal"
         mode="alternate"
-        className="min-w-max px-6"
+        className="min-w-max px-6 h-[300px] overflow-y-hidden"
       >
         {currentEvent.history
           .slice()
@@ -100,26 +100,7 @@ const EventTimeline = ({ currentEvent, isTimelineOpen, setIsTimelineOpen }) => {
               lineType="solid"
               style={{ width: "180px", padding: "0 12px" }}
             >
-              {/* <Row align="center">
-                <div className="flex flex-col  w-full">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center mb-2"
-                    style={{
-                      backgroundColor: `${getEventColor(item.type)}15`,
-                    }}
-                  >
-                    {getEventIcon(item.type)}
-                  </div>
-                  <div className="text-center w-full break-words">
-                    {item.desc}
-                  </div>
-                </div>
-              </Row> */}
               <Row align="start">
-                {/* <img
-                  width="40"
-                  src="//p1-arco.byteimg.com/tos-cn-i-uwbnlip3yd/73a34d47f2885cf5182d755aa0c8a7d4.png~tplv-uwbnlip3yd-png.png"
-                /> */}
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center"
                   style={{
