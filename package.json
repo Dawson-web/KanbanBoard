@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
+    "@arco-design/web-react": "^2.66.1",
     "@generouted/react-router": "^1.20.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@tailwindcss/vite": "^4.1.4",

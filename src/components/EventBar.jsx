@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Layout, Menu, Button, Typography, Modal, Form, Input } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import logo from '../assets/favicon.svg';
+import React, { useState } from "react";
+import { Layout, Menu, Button, Typography, Modal, Form, Input } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import logo from "../assets/favicon.svg";
+import EventType from "../types/event";
 
 const { Sider } = Layout;
 const { Title } = Typography;
@@ -16,10 +17,12 @@ const EventBar = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
 
   const handleAdd = (values) => {
     const title = values.title;
-    if (events.find((event) => event.title.toLowerCase() === title.toLowerCase())) {
+    if (
+      events.find((event) => event.title.toLowerCase() === title.toLowerCase())
+    ) {
       Modal.error({
-        title: '添加失败',
-        content: '事件名称已存在！'
+        title: "添加失败",
+        content: "事件名称已存在！",
       });
       return;
     }
@@ -29,13 +32,22 @@ const EventBar = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
       {
         title,
         columnColors: {
-          'To do': '#faad14',
-          'In progress': '#1677ff',
-          'Completed': '#52c41a'
+          "To do": "#faad14",
+          "In progress": "#1677ff",
+          Completed: "#52c41a",
         },
-        ['To do']: [],
-        ['In progress']: [],
-        ['Completed']: [],
+        history: [
+          {
+            type: EventType.CREATEEVENT,
+            date: new Date().getTime(),
+            desc: `创建事件-${title}`,
+            details: `创建事件-${title}`,
+            user: null,
+          },
+        ],
+        ["To do"]: [],
+        ["In progress"]: [],
+        ["Completed"]: [],
       },
     ]);
     setIsAddModalOpen(false);
@@ -49,7 +61,7 @@ const EventBar = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
           <img src={logo} alt="logo" className="w-8 h-8" />
           .kanBan
         </Title>
-        <Button 
+        <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={showAddModal}
@@ -62,10 +74,10 @@ const EventBar = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
       <Menu
         mode="inline"
         selectedKeys={[currentEvent.title]}
-        items={events.map(item => ({
+        items={events.map((item) => ({
           key: item.title,
           label: item.title,
-          onClick: () => setCurrentEvent(item)
+          onClick: () => setCurrentEvent(item),
         }))}
         className="!border-0 !mt-4"
       />
@@ -81,15 +93,11 @@ const EventBar = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
         okText="添加"
         cancelText="取消"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleAdd}
-        >
+        <Form form={form} layout="vertical" onFinish={handleAdd}>
           <Form.Item
             name="title"
             label="事件名称"
-            rules={[{ required: true, message: '请输入事件名称！' }]}
+            rules={[{ required: true, message: "请输入事件名称！" }]}
           >
             <Input placeholder="请输入事件名称" />
           </Form.Item>

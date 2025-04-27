@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import Column from "./Column";
 import TaskStatistics from "./TaskStatistics";
+import EventTimeline from "./EventTimeline";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import {
   Layout,
@@ -17,7 +18,9 @@ import {
   SettingOutlined,
   EditOutlined,
   BarChartOutlined,
+  HistoryOutlined,
 } from "@ant-design/icons";
+import EventType from "../types/event";
 const { Header, Content } = Layout;
 const { Title } = Typography;
 
@@ -25,6 +28,7 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
   const [isTaskStatisticsOpen, setIsTaskStatisticsOpen] = useState(false);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
   const [form] = Form.useForm();
   const [editEventForm] = Form.useForm();
 
@@ -36,6 +40,9 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
       cancelText: "取消",
       okButtonProps: { danger: true },
       onOk: () => {
+        // 在删除前添加历史记录
+        const eventToDelete = currentEvent.title;
+
         // update events
         setEvents((prev) => {
           const result = prev.filter(
@@ -52,6 +59,15 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
                   "In progress": "#1677ff",
                   Completed: "#52c41a",
                 },
+                history: [
+                  {
+                    type: EventType.CREATEEVENT,
+                    date: new Date().getTime(),
+                    desc: "创建事件-新建事件",
+                    details: "创建事件-新建事件",
+                    user: null,
+                  },
+                ],
                 ["To do"]: [],
                 ["In progress"]: [],
                 ["Completed"]: [],
@@ -59,6 +75,14 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
             ];
             setEvents(initEvent);
           } else {
+            // 在第一个事件中添加删除记录
+            result[0].history.push({
+              type: EventType.DELETEEVENT,
+              date: new Date().getTime(),
+              desc: `删除事件-${eventToDelete}`,
+              details: `删除事件-${eventToDelete}`,
+              user: null,
+            });
             // set the first event as current
             setCurrentEvent(result[0]);
           }
@@ -124,6 +148,16 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
           newEvent[columnTitle] = prev[columnTitle];
         });
 
+        newEvent.history = [
+          ...prev.history,
+          {
+            type: EventType.MOVETASK,
+            date: new Date().getTime(),
+            desc: `移动列-${movedColumn}`,
+            details: `移动列-${movedColumn}`,
+            user: null,
+          },
+        ];
         return newEvent;
       });
       return;
@@ -132,6 +166,8 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
     // 处理任务的拖动
     if (type === "TASK") {
       const taskId = draggableId.replace("task-", "");
+      const sourceColumnTitle = source.droppableId;
+      const destColumnTitle = destination.droppableId;
 
       setEvents((prev) =>
         prev.map((event) => {
@@ -156,6 +192,16 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
                 ...event,
                 [source.droppableId]: sourceList,
                 [destination.droppableId]: destList,
+                history: [
+                  ...event.history,
+                  {
+                    type: EventType.MOVETASK,
+                    date: new Date().getTime(),
+                    desc: `移动任务-${taskId}`,
+                    details: `移动任务-${taskId}从${sourceColumnTitle}到${destColumnTitle}`,
+                    user: null,
+                  },
+                ],
               };
             }
           }
@@ -185,6 +231,16 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
             ...prev,
             [source.droppableId]: sourceList,
             [destination.droppableId]: destList,
+            history: [
+              ...prev.history,
+              {
+                type: EventType.MOVETASK,
+                date: new Date().getTime(),
+                desc: `移动任务-${taskId}`,
+                details: `移动任务-${taskId}从${sourceColumnTitle}到${destColumnTitle}`,
+                user: null,
+              },
+            ],
           };
         }
       });
@@ -206,6 +262,16 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
       }
       return {
         ...prev,
+        history: [
+          ...prev.history,
+          {
+            type: EventType.CREATECLOUMN,
+            date: new Date().getTime(),
+            desc: `创建新列-${columnTitle}`,
+            details: `创建新列-${columnTitle}`,
+            user: null,
+          },
+        ],
         [columnTitle]: [], // 新列的任务列表
         columnColors: {
           ...prev.columnColors,
@@ -229,6 +295,16 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
               ...event.columnColors,
               [columnTitle]: "#1890ff", // 默认蓝色
             },
+            history: [
+              ...event.history,
+              {
+                type: EventType.CREATECLOUMN,
+                date: new Date().getTime(),
+                desc: `创建新列-${columnTitle}`,
+                details: `创建新列-${columnTitle}`,
+                user: null,
+              },
+            ],
           };
         }
         return event;
@@ -248,6 +324,16 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
           delete columnColors[columnTitle];
           return {
             ...rest,
+            history: [
+              ...event.history,
+              {
+                type: EventType.DELETECLOUMN,
+                date: new Date().getTime(),
+                desc: `删除列-${columnTitle}`,
+                details: `删除列-${columnTitle}`,
+                user: null,
+              },
+            ],
             columnColors,
           };
         }
@@ -262,6 +348,16 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
       delete columnColors[columnTitle];
       return {
         ...rest,
+        history: [
+          ...prev.history,
+          {
+            type: EventType.DELETECLOUMN,
+            date: new Date().getTime(),
+            desc: `删除列-${columnTitle}`,
+            details: `删除列-${columnTitle}`,
+            user: null,
+          },
+        ],
         columnColors,
       };
     });
@@ -290,6 +386,17 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
           newEvent[key] = [...prev[key]];
         }
       });
+
+      newEvent.history = [
+        ...prev.history,
+        {
+          type: EventType.EDITECLOUMN,
+          date: new Date().getTime(),
+          desc: `编辑列-${oldTitle}名称`,
+          details: `编辑列名称-从"${oldTitle}"改为"${newTitle}"`,
+          user: null,
+        },
+      ];
 
       return newEvent;
     });
@@ -326,6 +433,17 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
             }
           });
 
+          newEvent.history = [
+            ...event.history,
+            {
+              type: EventType.EDITECLOUMN,
+              date: new Date().getTime(),
+              desc: `编辑列-${oldTitle}名称`,
+              details: `编辑列名称-从"${oldTitle}"改为"${newTitle}"`,
+              user: null,
+            },
+          ];
+
           return newEvent;
         }
         return event;
@@ -349,10 +467,24 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
       return;
     }
 
+    const oldTitle = currentEvent.title;
     setEvents((prev) =>
       prev.map((event) => {
         if (event.title === currentEvent.title) {
-          return { ...event, title };
+          return {
+            ...event,
+            title,
+            history: [
+              ...event.history,
+              {
+                type: EventType.EDITEVENT,
+                date: new Date().getTime(),
+                desc: `编辑事件-${oldTitle}`,
+                details: `编辑事件名称-从"${oldTitle}"改为"${title}"`,
+                user: null,
+              },
+            ],
+          };
         }
         return event;
       })
@@ -361,6 +493,16 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
     setCurrentEvent((prev) => ({
       ...prev,
       title,
+      history: [
+        ...prev.history,
+        {
+          type: EventType.EDITEVENT,
+          date: new Date().getTime(),
+          desc: `编辑事件-${oldTitle}`,
+          details: `编辑事件名称-从"${oldTitle}"改为"${title}"`,
+          user: null,
+        },
+      ],
     }));
 
     setIsEditEventModalOpen(false);
@@ -385,32 +527,34 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
                 ref={provided.innerRef}
                 {...provided.droppableProps}
               >
-                {columns.map((columnTitle, index) => (
-                  <Draggable
-                    key={`column-${columnTitle}`}
-                    draggableId={`column-${columnTitle}`}
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        className="w-[300px]"
-                      >
-                        <Column
-                          tag={columnTitle}
-                          currentEvent={currentEvent}
-                          events={events}
-                          setEvents={setEvents}
-                          setCurrentEvent={setCurrentEvent}
-                          onColumnDelete={handleColumnDelete}
-                          onColumnTitleChange={handleColumnTitleChange}
-                          dragHandleProps={provided.dragHandleProps}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
+                {columns
+                  .filter((columnTitle) => columnTitle !== "history")
+                  .map((columnTitle, index) => (
+                    <Draggable
+                      key={`column-${columnTitle}`}
+                      draggableId={`column-${columnTitle}`}
+                      index={index}
+                    >
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className="w-[300px]"
+                        >
+                          <Column
+                            tag={columnTitle}
+                            currentEvent={currentEvent}
+                            events={events}
+                            setEvents={setEvents}
+                            setCurrentEvent={setCurrentEvent}
+                            onColumnDelete={handleColumnDelete}
+                            onColumnTitleChange={handleColumnTitleChange}
+                            dragHandleProps={provided.dragHandleProps}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
                 {provided.placeholder}
               </div>
             )}
@@ -423,12 +567,24 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
             setIsTaskStatisticsOpen={setIsTaskStatisticsOpen}
           />
         )}
+        {isTimelineOpen && (
+          <EventTimeline
+            currentEvent={currentEvent}
+            isTimelineOpen={isTimelineOpen}
+            setIsTimelineOpen={setIsTimelineOpen}
+          />
+        )}
         <FloatButton.Group
-          trigger="hover"
+          trigger="click"
           icon={<SettingOutlined />}
           type="primary"
           style={{ right: 24 }}
         >
+          <FloatButton
+            icon={<HistoryOutlined />}
+            tooltip="时间线"
+            onClick={() => setIsTimelineOpen(true)}
+          />
           <FloatButton
             icon={<BarChartOutlined />}
             tooltip="事件看板"

@@ -1,0 +1,14 @@
+const EventType = {
+  CREATEEVENT: 1,
+  DELETEEVENT: 2,
+  EDITEVENT: 3,
+  CREATECLOUMN: 4,
+  DELETECLOUMN: 5,
+  EDITECLOUMN: 6,
+  CREATETASK: 7,
+  DELETETASK: 8,
+  EDITTASK: 9,
+  MOVETASK: 10,
+};
+
+export default EventType;
