@@ -97,7 +97,6 @@ const EventTimeline = ({ currentEvent, isTimelineOpen, setIsTimelineOpen }) => {
           .map((item, index) => (
             <TimelineItem
               key={index}
-              //   dot={getEventIcon(item.type)}
               lineType="solid"
               style={{ width: "180px", padding: "0 12px" }}
             >
@@ -131,7 +130,12 @@ const EventTimeline = ({ currentEvent, isTimelineOpen, setIsTimelineOpen }) => {
                 </div>
                 <Tooltip content={item.details}>
                   <div style={{ marginBottom: 12, marginLeft: 8 }}>
-                    {item.desc.split("-")[0]}
+                    <div>
+                      {item.desc.split("-")[0]}
+                      <div style={{ fontSize: 12, color: "#4E5969" }}>
+                        {formatDate(item.date)}
+                      </div>
+                    </div>
                     <div
                       style={{ fontSize: 12, color: "#4E5969" }}
                       className="line-clamp-2"
