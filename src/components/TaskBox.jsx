@@ -197,8 +197,8 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
                   {
                     type: EventType.MOVETASK,
                     date: new Date().getTime(),
-                    desc: `移动任务-${taskId}`,
-                    details: `移动任务-${taskId}从${sourceColumnTitle}到${destColumnTitle}`,
+                    desc: `移动任务-${removed.name}`,
+                    details: `移动任务-${removed.name}从${sourceColumnTitle}到${destColumnTitle}`,
                     user: null,
                   },
                 ],
@@ -227,6 +227,7 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
           };
         } else {
           destList.splice(destination.index, 0, removed);
+          console.log(removed);
           return {
             ...prev,
             [source.droppableId]: sourceList,
@@ -236,8 +237,8 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
               {
                 type: EventType.MOVETASK,
                 date: new Date().getTime(),
-                desc: `移动任务-${taskId}`,
-                details: `移动任务-${taskId}从${sourceColumnTitle}到${destColumnTitle}`,
+                desc: `移动任务-${removed.name}`,
+                details: `移动任务-${removed.name}从${sourceColumnTitle}到${destColumnTitle}`,
                 user: null,
               },
             ],
