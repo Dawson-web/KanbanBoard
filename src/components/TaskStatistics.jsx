@@ -50,6 +50,7 @@ const TaskStatistics = ({
           "To do",
           "In progress",
           "Completed",
+          "history",
         ].includes(key)
     );
 

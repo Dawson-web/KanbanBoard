@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
-import EventBar from "../components/EventBar";
-import TaskBox from "../components/TaskBox";
 import { Layout, theme } from "antd";
-import EventType from "../types/event";
+import EventType from "@/types/event";
+import EventBar from "@/components/EventBar";
+import TaskBox from "@/components/TaskBox";
 
 function App() {
   const { token } = theme.useToken();

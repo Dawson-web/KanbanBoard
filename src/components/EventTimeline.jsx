@@ -14,7 +14,7 @@ import {
   IconRight,
   IconList,
 } from "@arco-design/web-react/icon";
-import EventType from "../types/event";
+import EventType from "@/types/event";
 import "@arco-design/web-react/dist/css/arco.css";
 
 const TimelineItem = Timeline.Item;
