@@ -1,9 +1,39 @@
-import { Card, Typography, Button, Modal, Form, Input } from "antd";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  Card,
+  Typography,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  Tag,
+  Space,
+} from "antd";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  ClockCircleOutlined,
+  FlagOutlined,
+} from "@ant-design/icons";
 import { useState, memo } from "react";
+import dayjs from "dayjs";
 
 const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
+const { Option } = Select;
+
+const priorityColors = {
+  high: "#f5222d",
+  medium: "#faad14",
+  low: "#52c41a",
+};
+
+const priorityLabels = {
+  high: "高",
+  medium: "中",
+  low: "低",
+};
 
 const Task = memo(
   ({
@@ -15,22 +45,37 @@ const Task = memo(
     snapshot,
     handleRemove,
     handleUpdate,
+    priority = "medium",
+    dueDate = null,
   }) => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [form] = Form.useForm();
 
     const showEditModal = () => {
-      form.setFieldsValue({ name, details });
+      form.setFieldsValue({
+        name,
+        details,
+        priority: priority || "medium",
+        dueDate: dueDate ? dayjs(dueDate) : null,
+      });
       setIsEditModalOpen(true);
     };
 
     const handleEditOk = () => {
       form.validateFields().then((values) => {
-        handleUpdate(id, values.name, values.details);
+        handleUpdate(
+          id,
+          values.name,
+          values.details,
+          values.priority,
+          values.dueDate ? values.dueDate.valueOf() : null
+        );
         setIsEditModalOpen(false);
         form.resetFields();
       });
     };
+
+    const isOverdue = dueDate && new Date(dueDate).getTime() < Date.now();
 
     if (!id) return null; // 添加空值检查
 
@@ -82,6 +127,21 @@ const Task = memo(
               >
                 {details}
               </Paragraph>
+
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
+                {priority && (
+                  <Tag color={priorityColors[priority]}>
+                    <FlagOutlined /> {priorityLabels[priority]}优先级
+                  </Tag>
+                )}
+
+                {dueDate && (
+                  <Tag color={isOverdue ? "red" : "blue"}>
+                    <ClockCircleOutlined />{" "}
+                    {dayjs(dueDate).format("MM-DD HH:mm")}
+                  </Tag>
+                )}
+              </div>
             </div>
           </div>
         </Card>
@@ -108,7 +168,12 @@ const Task = memo(
           <Form
             form={form}
             layout="vertical"
-            initialValues={{ name, details }}
+            initialValues={{
+              name,
+              details,
+              priority: priority || "medium",
+              dueDate: dueDate ? dayjs(dueDate) : null,
+            }}
             className="mt-4"
           >
             <Form.Item
@@ -130,6 +195,33 @@ const Task = memo(
                 maxLength={200}
               />
             </Form.Item>
+
+            <Space style={{ display: "flex", width: "100%" }}>
+              <Form.Item
+                name="priority"
+                label="优先级"
+                style={{ width: "50%" }}
+              >
+                <Select placeholder="请选择优先级">
+                  <Option value="high">高</Option>
+                  <Option value="medium">中</Option>
+                  <Option value="low">低</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="dueDate"
+                label="截止日期"
+                style={{ width: "50%" }}
+              >
+                <DatePicker
+                  showTime
+                  placeholder="选择截止日期"
+                  format="YYYY-MM-DD HH:mm"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </Space>
           </Form>
         </Modal>
       </div>

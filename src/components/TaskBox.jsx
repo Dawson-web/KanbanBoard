@@ -3,7 +3,22 @@ import Column from "./Column";
 import TaskStatistics from "./TaskStatistics";
 import EventTimeline from "./EventTimeline";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { Layout, Typography, Modal, Form, Input, FloatButton } from "antd";
+import {
+  Layout,
+  Typography,
+  Modal,
+  Form,
+  Input,
+  FloatButton,
+  Button,
+  Row,
+  Col,
+  Select,
+  Space,
+  Divider,
+  DatePicker,
+  Tag,
+} from "antd";
 import {
   DeleteOutlined,
   PlusOutlined,
@@ -11,11 +26,16 @@ import {
   EditOutlined,
   BarChartOutlined,
   HistoryOutlined,
+  SearchOutlined,
+  FilterOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import EventType from "../types/event";
 import useScrollDragble from "../hooks/ScrollDragble";
-const { Header, Content } = Layout;
-const { Title } = Typography;
+import dayjs from "dayjs";
+import FilterMenu from "./FilterMenu";
+
+const { Content } = Layout;
 
 const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
@@ -25,11 +45,14 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
   const [form] = Form.useForm();
   const [editEventForm] = Form.useForm();
 
+  // 搜索和过滤状态
+  const [searchText, setSearchText] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState([]);
+  const [dateRangeFilter, setDateRangeFilter] = useState(null);
+  const [dueDateOption, setDueDateOption] = useState("all");
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+
   // 拖拽
-  // const contentRef = useRef(null);
-  // const [isDragging, setIsDragging] = useState(false);
-  // const [startX, setStartX] = useState(0);
-  // const [scrollLeft, setScrollLeft] = useState(0);
   const contentRef = useScrollDragble("MAIN");
 
   const handleRemove = useCallback(() => {
@@ -517,61 +540,114 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
       )
     : [];
 
-  // useEffect(() => {
-  //   const handleMouseDown = (e) => {
-  //     console.log(e.target);
-  //     if (
-  //       contentRef.current &&
-  //       e.target.tagName == "MAIN" && // 此处判断是否是主内容区域,避免拖拽冲突
-  //       !e.target.closest(".ant-btn") &&
-  //       !e.target.closest(".ant-modal")
-  //     ) {
-  //       setIsDragging(true);
-  //       setStartX(e.pageX - contentRef.current.offsetLeft);
-  //       setScrollLeft(contentRef.current.scrollLeft);
-  //       contentRef.current.style.cursor = "grabbing";
-  //       contentRef.current.style.userSelect = "none";
-  //     }
-  //   };
+  // 过滤任务的函数
+  const filterTasks = useCallback(
+    (tasks) => {
+      if (!tasks) return [];
 
-  //   const handleMouseMove = (e) => {
-  //     if (!isDragging) return;
-  //     e.preventDefault();
-  //     if (contentRef.current) {
-  //       const x = e.pageX - contentRef.current.offsetLeft;
-  //       const walk = (x - startX) * 2; // 滚动速度倍数
-  //       contentRef.current.scrollLeft = scrollLeft - walk;
-  //     }
-  //   };
+      return tasks.filter((task) => {
+        if (!task || !task.id) return false;
 
-  //   const handleMouseUp = () => {
-  //     setIsDragging(false);
-  //     if (contentRef.current) {
-  //       contentRef.current.style.cursor = "default";
-  //       contentRef.current.style.userSelect = "auto";
-  //     }
-  //   };
+        // 搜索文本过滤
+        if (searchText) {
+          const searchLower = searchText.toLowerCase();
+          const nameMatch = task.name?.toLowerCase().includes(searchLower);
+          const detailsMatch = task.details
+            ?.toLowerCase()
+            .includes(searchLower);
 
-  //   const content = contentRef.current;
-  //   if (content) {
-  //     content.addEventListener("mousedown", handleMouseDown);
-  //     window.addEventListener("mousemove", handleMouseMove);
-  //     window.addEventListener("mouseup", handleMouseUp);
-  //     window.addEventListener("mouseleave", handleMouseUp);
-  //   }
+          if (!nameMatch && !detailsMatch) return false;
+        }
 
-  //   return () => {
-  //     if (content) {
-  //       content.removeEventListener("mousedown", handleMouseDown);
-  //     }
-  //     window.removeEventListener("mousemove", handleMouseMove);
-  //     window.removeEventListener("mouseup", handleMouseUp);
-  //     window.removeEventListener("mouseleave", handleMouseUp);
-  //   };
-  // }, [isDragging, startX, scrollLeft]);
+        // 优先级过滤
+        if (
+          priorityFilter.length > 0 &&
+          !priorityFilter.includes(task.priority || "medium")
+        ) {
+          return false;
+        }
+
+        // 截止日期过滤
+        if (dueDateOption !== "all") {
+          const today = dayjs().startOf("day");
+          const taskDueDate = task.dueDate ? dayjs(task.dueDate) : null;
+
+          if (!taskDueDate) {
+            // 如果任务没有截止日期，且我们在筛选有截止日期的任务
+            if (dueDateOption !== "none") return false;
+          } else {
+            // 根据选择的选项进行过滤
+            switch (dueDateOption) {
+              case "today":
+                if (!taskDueDate.isSame(today, "day")) return false;
+                break;
+              case "week":
+                const endOfWeek = dayjs().endOf("week");
+                if (!taskDueDate.isBetween(today, endOfWeek, "day", "[]"))
+                  return false;
+                break;
+              case "overdue":
+                if (!taskDueDate.isBefore(today, "day")) return false;
+                break;
+              case "none":
+                return false; // 如果选择"无截止日期"但任务有截止日期
+              default:
+                break;
+            }
+          }
+        }
+
+        // 日期范围过滤
+        if (
+          dateRangeFilter &&
+          dateRangeFilter[0] &&
+          dateRangeFilter[1] &&
+          task.dueDate
+        ) {
+          const start = dateRangeFilter[0].startOf("day");
+          const end = dateRangeFilter[1].endOf("day");
+          const dueDate = dayjs(task.dueDate);
+
+          if (!dueDate.isBetween(start, end, "day", "[]")) return false;
+        }
+
+        return true;
+      });
+    },
+    [searchText, priorityFilter, dueDateOption, dateRangeFilter]
+  );
+
+  // 检查是否有活跃的过滤器
+  const hasActiveFilters =
+    searchText ||
+    priorityFilter.length > 0 ||
+    dueDateOption !== "all" ||
+    dateRangeFilter;
+
+  // 清除所有过滤器
+  const clearAllFilters = () => {
+    setSearchText("");
+    setPriorityFilter([]);
+    setDateRangeFilter(null);
+    setDueDateOption("all");
+  };
 
   return (
     <Layout className="h-screen overflow-hidden flex flex-col">
+      <FilterMenu
+        searchText={searchText}
+        setSearchText={setSearchText}
+        priorityFilter={priorityFilter}
+        setPriorityFilter={setPriorityFilter}
+        dueDateOption={dueDateOption}
+        setDueDateOption={setDueDateOption}
+        dateRangeFilter={dateRangeFilter}
+        setDateRangeFilter={setDateRangeFilter}
+        isFilterVisible={isFilterVisible}
+        setIsFilterVisible={setIsFilterVisible}
+        hasActiveFilters={hasActiveFilters}
+        clearAllFilters={clearAllFilters}
+      />
       <Content className="px-6 pt-4 overflow-auto flex-grow" ref={contentRef}>
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="columns" direction="horizontal" type="COLUMN">
@@ -604,6 +680,7 @@ const TaskBox = ({ events, setEvents, currentEvent, setCurrentEvent }) => {
                             onColumnDelete={handleColumnDelete}
                             onColumnTitleChange={handleColumnTitleChange}
                             dragHandleProps={provided.dragHandleProps}
+                            filterTasks={filterTasks}
                           />
                         </div>
                       )}

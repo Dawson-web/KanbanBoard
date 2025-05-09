@@ -1,8 +1,15 @@
 {
-  "name": "todo-plus",
+  "name": "kanban-plus",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "index.html",
+  "author": "Dawson",
+  "license": "ISC",
+  "description": "Kanban Plus",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -16,6 +23,7 @@
     "@tailwindcss/vite": "^4.1.4",
     "@types/uuid": "^10.0.0",
     "antd": "^5.24.8",
+    "dayjs": "^1.11.13",
     "react": "^18.2.0",
     "react-color": "^2.19.3",
     "react-dom": "^18.2.0",

@@ -3,7 +3,17 @@ import Task from "./Task";
 import ColumnTitleEditor from "./ColumnTitleEditor";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { v4 as uuid } from "uuid";
-import { Card, Typography, Modal, Form, Input, Popover } from "antd";
+import {
+  Card,
+  Typography,
+  Modal,
+  Form,
+  Input,
+  Popover,
+  Space,
+  Select,
+  DatePicker,
+} from "antd";
 import { useState, useCallback, useMemo, memo } from "react";
 import { CirclePicker } from "react-color";
 import EventType from "../types/event";
@@ -20,6 +30,7 @@ const Column = memo(
     onColumnTitleChange,
     dragHandleProps,
     setCurrentEvent,
+    filterTasks = (tasks) => tasks,
   }) => {
     const [form] = Form.useForm();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -34,6 +45,8 @@ const Column = memo(
           name: values.name,
           id: uuid(),
           details: values.details,
+          priority: values.priority || "medium",
+          dueDate: values.dueDate ? values.dueDate.valueOf() : null,
         };
 
         setEvents((prev) =>
@@ -143,7 +156,7 @@ const Column = memo(
     );
 
     const handleUpdate = useCallback(
-      (id, name, details) => {
+      (id, name, details, priority, dueDate) => {
         if (!id) return;
 
         const oldTask = currentEvent[tag].find((task) => task.id === id);
@@ -159,7 +172,13 @@ const Column = memo(
               );
               if (index === -1) return event;
 
-              taskList[index] = { ...taskList[index], name, details };
+              taskList[index] = {
+                ...taskList[index],
+                name,
+                details,
+                priority,
+                dueDate,
+              };
               return {
                 ...event,
                 [tag]: taskList,
@@ -184,7 +203,13 @@ const Column = memo(
           const index = taskList.findIndex((item) => item && item.id === id);
           if (index === -1) return prev;
 
-          taskList[index] = { ...taskList[index], name, details };
+          taskList[index] = {
+            ...taskList[index],
+            name,
+            details,
+            priority,
+            dueDate,
+          };
           return {
             ...prev,
             [tag]: taskList,
@@ -242,11 +267,13 @@ const Column = memo(
       [currentEvent.columnColors[tag], handleColumnColorChange]
     );
 
-    // 获取当前列的任务列表并过滤掉无效值
-    const tasks = useMemo(
-      () => (currentEvent?.[tag] || []).filter((task) => task && task.id),
-      [currentEvent, tag]
-    );
+    // 获取当前列的任务列表并过滤掉无效值，然后应用任务过滤
+    const tasks = useMemo(() => {
+      const columnTasks = (currentEvent?.[tag] || []).filter(
+        (task) => task && task.id
+      );
+      return filterTasks(columnTasks);
+    }, [currentEvent, tag, filterTasks]);
 
     return (
       <>
@@ -293,28 +320,32 @@ const Column = memo(
           <Droppable droppableId={tag} type="TASK">
             {(provided, snapshot) => (
               <div
-                className={`min-h-[30px] max-h-[calc(100vh-250px)] overflow-auto rounded-lg p-2 transition-colors duration-200 ${
-                  snapshot.isDraggingOver ? "bg-blue-50" : ""
-                }`}
                 ref={provided.innerRef}
                 {...provided.droppableProps}
+                className={`min-h-[30px] px-1 py-2 overflow-auto rounded-md pb-12 ${
+                  snapshot.isDraggingOver
+                    ? `bg-${currentEvent.columnColors[tag]}/5`
+                    : ""
+                }`}
               >
-                {tasks.map((item, index) => (
+                {tasks.map((task, index) => (
                   <Draggable
-                    key={`task-${item.id}`}
-                    draggableId={`task-${item.id}`}
+                    key={`task-${task.id}`}
+                    draggableId={`task-${task.id}`}
                     index={index}
                   >
                     {(provided, snapshot) => (
                       <Task
-                        name={item.name}
-                        details={item.details}
-                        id={item.id}
+                        name={task.name}
+                        details={task.details}
+                        id={task.id}
                         color={currentEvent.columnColors[tag]}
                         provided={provided}
                         snapshot={snapshot}
                         handleRemove={handleRemove}
                         handleUpdate={handleUpdate}
+                        priority={task.priority || "medium"}
+                        dueDate={task.dueDate}
                       />
                     )}
                   </Draggable>
@@ -326,7 +357,15 @@ const Column = memo(
         </Card>
 
         <Modal
-          title="新建任务"
+          title={
+            <div className="flex items-center gap-2">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: currentEvent.columnColors[tag] }}
+              />
+              <span>添加新任务到 {tag}</span>
+            </div>
+          }
           open={isAddModalOpen}
           onOk={() => form.submit()}
           onCancel={() => {
@@ -335,7 +374,6 @@ const Column = memo(
           }}
           okText="添加"
           cancelText="取消"
-          className="!w-[400px]"
           maskClosable={false}
           centered
         >
@@ -345,15 +383,48 @@ const Column = memo(
               label="任务名称"
               rules={[{ required: true, message: "请输入任务名称！" }]}
             >
-              <Input placeholder="请输入任务名称" />
+              <Input placeholder="请输入任务名称" maxLength={50} showCount />
             </Form.Item>
             <Form.Item
               name="details"
               label="任务详情"
               rules={[{ required: true, message: "请输入任务详情！" }]}
             >
-              <TextArea rows={4} placeholder="请输入任务详情" />
+              <TextArea
+                rows={4}
+                placeholder="请输入任务详情"
+                maxLength={200}
+                showCount
+              />
             </Form.Item>
+
+            <Space style={{ display: "flex", width: "100%" }}>
+              <Form.Item
+                name="priority"
+                label="优先级"
+                style={{ width: "50%" }}
+                initialValue="medium"
+              >
+                <Select placeholder="请选择优先级">
+                  <Select.Option value="high">高</Select.Option>
+                  <Select.Option value="medium">中</Select.Option>
+                  <Select.Option value="low">低</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="dueDate"
+                label="截止日期"
+                style={{ width: "50%" }}
+              >
+                <DatePicker
+                  showTime
+                  placeholder="选择截止日期"
+                  format="YYYY-MM-DD HH:mm"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </Space>
           </Form>
         </Modal>
       </>
